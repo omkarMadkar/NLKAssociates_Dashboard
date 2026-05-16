@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Environment Variables
+.env
+Backend/.env
+Frontend/.env
+
+# Uploads and Artifacts
+uploads/
+Backend/uploads/
+Frontend/uploads/
+
+# Build Output
+Frontend/dist/
+dist/
+build/
+
+# Mac OS
+.DS_Store
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Docs Images (if user doesn't want them tracked, but wait, the prompt says "upload the ui/ux design ... in the readme file". So I should let git track docs/images/)
+# docs/images/

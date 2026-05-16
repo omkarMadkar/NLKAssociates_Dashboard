@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+:root {
+  --navy: #1a2744;
+  --gold: #c9a84c;
+  --gold-light: #e8c96e;
+  --accent: #2563eb;
+  --success: #16a34a;
+  --warning: #d97706;
+  --danger: #dc2626;
+  --bg: #f1f5f9;
+  --card: #ffffff;
+  --border: #e2e8f0;
+  --text: #0f172a;
+  --muted: #64748b;
+  --sidebar-width: 260px;
+}
+
+* { font-family: 'DM Sans', sans-serif; box-sizing: border-box; }
+h1, h2, h3, .font-display { font-family: 'Playfair Display', serif; }
+body { background: var(--bg); color: var(--text); margin: 0; }
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; } 50% { opacity: 0.4; }
+}
+.animate-in { animation: fadeSlideUp 0.4s ease forwards; }
+.animate-in-delay { animation: fadeSlideUp 0.4s ease forwards; animation-delay: calc(var(--i, 0) * 0.08s); opacity: 0; }

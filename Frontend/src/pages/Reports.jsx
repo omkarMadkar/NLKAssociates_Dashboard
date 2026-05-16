@@ -1,0 +1,134 @@
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import API from '../api/axios';
+
+const STATUS_STYLES = {
+  approved:       { bg: '#dcfce7', color: '#16a34a', label: 'Approved' },
+  shared_to_bank: { bg: '#cffafe', color: '#0e7490', label: 'Shared to Bank' },
+};
+
+function StatusBadge({ status }) {
+  const s = STATUS_STYLES[status] || { bg: '#f1f5f9', color: '#475569', label: status };
+  return <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: s.bg, color: s.color }}>{s.label}</span>;
+}
+
+export default function Reports() {
+  const [approvedCases, setApprovedCases] = useState([]);
+  const [sharedCases, setSharedCases] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const token = localStorage.getItem('token');
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const [appRes, shRes] = await Promise.all([
+        API.get('/cases?status=approved', { headers: { Authorization: `Bearer ${token}` } }),
+        API.get('/cases?status=shared_to_bank', { headers: { Authorization: `Bearer ${token}` } })
+      ]);
+      setApprovedCases(appRes.data.cases);
+      setSharedCases(shRes.data.cases);
+    } catch (err) {
+      console.error(err);
+    }
+    setLoading(false);
+  };
+
+  const handleShare = async (id) => {
+    try {
+      // Assuming you implement the actual sharing logic in backend, for now we just change status
+      await API.put(`/cases/${id}/status`, { status: 'shared_to_bank' }, { headers: { Authorization: `Bearer ${token}` } });
+      fetchData();
+      alert('Case marked as shared to bank!');
+    } catch (err) {
+      console.error(err);
+      alert('Action failed');
+    }
+  };
+
+  if (loading) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading...</div>;
+
+  return (
+    <div className="animate-in" style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+      
+      <div>
+        <h1 style={{ fontFamily: 'Playfair Display', fontSize: 28, color: 'var(--navy)', margin: '0 0 8px 0' }}>Reports & Sharing</h1>
+        <p style={{ color: 'var(--muted)', margin: 0, fontSize: 14 }}>Generate final PDFs and share approved reports with banks.</p>
+      </div>
+
+      {/* Section 1: Ready to Share */}
+      <div>
+        <h2 style={{ fontFamily: 'Playfair Display', fontSize: 20, color: 'var(--navy)', marginBottom: 16 }}>Ready to Share (Approved)</h2>
+        <div style={{ background: 'white', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.08)', overflow: 'hidden' }}>
+          {approvedCases.length === 0 ? (
+             <div style={{ padding: 32, textAlign: 'center', color: 'var(--muted)' }}>No approved cases ready to share.</div>
+          ) : (
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc' }}>
+                  {['Case ID', 'Client', 'Bank', 'Approved Date', 'Actions'].map(h => (
+                    <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: 0.8 }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {approvedCases.map((c) => (
+                  <tr key={c._id} style={{ borderTop: '1px solid var(--border)' }}>
+                    <td style={{ padding: '14px 16px', fontFamily: 'monospace', fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>{c.caseId}</td>
+                    <td style={{ padding: '14px 16px', fontSize: 13 }}>{c.clientId?.name}</td>
+                    <td style={{ padding: '14px 16px', fontSize: 13 }}>{c.bank}</td>
+                    <td style={{ padding: '14px 16px', fontSize: 13, color: 'var(--muted)' }}>{new Date(c.updatedAt).toLocaleDateString()}</td>
+                    <td style={{ padding: '14px 16px', display: 'flex', gap: 8 }}>
+                      <button onClick={() => alert('PDF generation endpoint not fully implemented in mock backend')} style={{ background: 'white', border: '1px solid var(--border)', padding: '6px 12px', borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        📄 PDF
+                      </button>
+                      <button onClick={() => handleShare(c._id)} style={{ background: 'var(--navy)', color: 'white', border: 'none', padding: '6px 12px', borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        🏦 Share
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+
+      {/* Section 2: Shared History */}
+      <div>
+        <h2 style={{ fontFamily: 'Playfair Display', fontSize: 20, color: 'var(--navy)', marginBottom: 16 }}>Shared History</h2>
+        <div style={{ background: 'white', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.08)', overflow: 'hidden' }}>
+          {sharedCases.length === 0 ? (
+             <div style={{ padding: 32, textAlign: 'center', color: 'var(--muted)' }}>No cases have been shared yet.</div>
+          ) : (
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc' }}>
+                  {['Case ID', 'Client', 'Bank', 'Shared Date', 'Action'].map(h => (
+                    <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: 0.8 }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {sharedCases.map((c) => (
+                  <tr key={c._id} style={{ borderTop: '1px solid var(--border)' }}>
+                    <td style={{ padding: '14px 16px', fontFamily: 'monospace', fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>{c.caseId}</td>
+                    <td style={{ padding: '14px 16px', fontSize: 13 }}>{c.clientId?.name}</td>
+                    <td style={{ padding: '14px 16px', fontSize: 13 }}>{c.bank}</td>
+                    <td style={{ padding: '14px 16px', fontSize: 13, color: 'var(--muted)' }}>{new Date(c.updatedAt).toLocaleDateString()}</td>
+                    <td style={{ padding: '14px 16px' }}>
+                      <Link to={`/cases/${c._id}`} style={{ color: 'var(--accent)', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>View →</Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+
+    </div>
+  );
+}
