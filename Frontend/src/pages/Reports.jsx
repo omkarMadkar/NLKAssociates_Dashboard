@@ -1,69 +1,42 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import API from '../api/axios';
-
-const STATUS_STYLES = {
-  approved:       { bg: '#dcfce7', color: '#16a34a', label: 'Approved' },
-  shared_to_bank: { bg: '#cffafe', color: '#0e7490', label: 'Shared to Bank' },
-};
+import { DEMO_MODE, MOCK_CASES } from '../data/mockData';
 
 function StatusBadge({ status }) {
-  const s = STATUS_STYLES[status] || { bg: '#f1f5f9', color: '#475569', label: status };
+  const styles = {
+    approved:       { bg: '#dcfce7', color: '#16a34a', label: 'Approved' },
+    shared_to_bank: { bg: '#cffafe', color: '#0e7490', label: 'Shared to Bank' },
+  };
+  const s = styles[status] || { bg: '#f1f5f9', color: '#475569', label: status };
   return <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: s.bg, color: s.color }}>{s.label}</span>;
 }
 
 export default function Reports() {
-  const [approvedCases, setApprovedCases] = useState([]);
-  const [sharedCases, setSharedCases] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const token = localStorage.getItem('token');
+  const [approvedCases, setApprovedCases] = useState(
+    DEMO_MODE ? MOCK_CASES.filter(c => c.status === 'approved') : []
+  );
+  const [sharedCases] = useState(
+    DEMO_MODE ? MOCK_CASES.filter(c => c.status === 'shared_to_bank') : []
+  );
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
-    try {
-      const [appRes, shRes] = await Promise.all([
-        API.get('/cases?status=approved', { headers: { Authorization: `Bearer ${token}` } }),
-        API.get('/cases?status=shared_to_bank', { headers: { Authorization: `Bearer ${token}` } })
-      ]);
-      setApprovedCases(appRes.data.cases);
-      setSharedCases(shRes.data.cases);
-    } catch (err) {
-      console.error(err);
-    }
-    setLoading(false);
+  const handleShare = (id) => {
+    setApprovedCases(prev => prev.filter(c => c._id !== id));
+    alert('✅ Case marked as shared to bank! (Demo mode)');
   };
-
-  const handleShare = async (id) => {
-    try {
-      // Assuming you implement the actual sharing logic in backend, for now we just change status
-      await API.put(`/cases/${id}/status`, { status: 'shared_to_bank' }, { headers: { Authorization: `Bearer ${token}` } });
-      fetchData();
-      alert('Case marked as shared to bank!');
-    } catch (err) {
-      console.error(err);
-      alert('Action failed');
-    }
-  };
-
-  if (loading) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading...</div>;
 
   return (
     <div className="animate-in" style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-      
       <div>
         <h1 style={{ fontFamily: 'Playfair Display', fontSize: 28, color: 'var(--navy)', margin: '0 0 8px 0' }}>Reports & Sharing</h1>
         <p style={{ color: 'var(--muted)', margin: 0, fontSize: 14 }}>Generate final PDFs and share approved reports with banks.</p>
       </div>
 
-      {/* Section 1: Ready to Share */}
+      {/* Ready to Share */}
       <div>
         <h2 style={{ fontFamily: 'Playfair Display', fontSize: 20, color: 'var(--navy)', marginBottom: 16 }}>Ready to Share (Approved)</h2>
         <div style={{ background: 'white', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.08)', overflow: 'hidden' }}>
           {approvedCases.length === 0 ? (
-             <div style={{ padding: 32, textAlign: 'center', color: 'var(--muted)' }}>No approved cases ready to share.</div>
+            <div style={{ padding: 32, textAlign: 'center', color: 'var(--muted)' }}>No approved cases ready to share.</div>
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
@@ -81,10 +54,10 @@ export default function Reports() {
                     <td style={{ padding: '14px 16px', fontSize: 13 }}>{c.bank}</td>
                     <td style={{ padding: '14px 16px', fontSize: 13, color: 'var(--muted)' }}>{new Date(c.updatedAt).toLocaleDateString()}</td>
                     <td style={{ padding: '14px 16px', display: 'flex', gap: 8 }}>
-                      <button onClick={() => alert('PDF generation endpoint not fully implemented in mock backend')} style={{ background: 'white', border: '1px solid var(--border)', padding: '6px 12px', borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <button onClick={() => alert('📄 PDF generation is a Phase 2 feature.')} style={{ background: 'white', border: '1px solid var(--border)', padding: '6px 12px', borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
                         📄 PDF
                       </button>
-                      <button onClick={() => handleShare(c._id)} style={{ background: 'var(--navy)', color: 'white', border: 'none', padding: '6px 12px', borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <button onClick={() => handleShare(c._id)} style={{ background: 'var(--navy)', color: 'white', border: 'none', padding: '6px 12px', borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
                         🏦 Share
                       </button>
                     </td>
@@ -96,12 +69,12 @@ export default function Reports() {
         </div>
       </div>
 
-      {/* Section 2: Shared History */}
+      {/* Shared History */}
       <div>
         <h2 style={{ fontFamily: 'Playfair Display', fontSize: 20, color: 'var(--navy)', marginBottom: 16 }}>Shared History</h2>
         <div style={{ background: 'white', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.08)', overflow: 'hidden' }}>
           {sharedCases.length === 0 ? (
-             <div style={{ padding: 32, textAlign: 'center', color: 'var(--muted)' }}>No cases have been shared yet.</div>
+            <div style={{ padding: 32, textAlign: 'center', color: 'var(--muted)' }}>No cases have been shared yet.</div>
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
@@ -128,7 +101,6 @@ export default function Reports() {
           )}
         </div>
       </div>
-
     </div>
   );
 }

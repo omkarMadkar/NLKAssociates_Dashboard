@@ -1,5 +1,6 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Login from './pages/Login';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { DEMO_MODE, DEMO_ROLE } from './data/mockData';
 import MainLayout from './components/Layout/MainLayout';
 import Dashboard from './pages/Dashboard';
 import BankCases from './pages/NonLitigation/BankCases';
@@ -11,11 +12,24 @@ import Approvals from './pages/Approvals';
 import SearchPage from './pages/SearchPage';
 import Reports from './pages/Reports';
 
+// DEMO MODE: Set role and a fake token in localStorage on app boot
+function DemoBootstrap() {
+  useEffect(() => {
+    if (DEMO_MODE) {
+      localStorage.setItem('role', DEMO_ROLE);
+      localStorage.setItem('token', 'demo-token-no-backend');
+    }
+  }, []);
+  return null;
+}
+
 function App() {
   return (
     <BrowserRouter>
+      <DemoBootstrap />
       <Routes>
-        <Route path="/" element={<Login />} />
+        {/* In DEMO MODE: redirect / directly to /dashboard — no login page */}
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route element={<MainLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/cases" element={<CaseList />} />

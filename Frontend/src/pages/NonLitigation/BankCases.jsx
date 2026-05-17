@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import API from '../../api/axios';
+import { DEMO_MODE, MOCK_CASES } from '../../data/mockData';
 
 const BANK_META = {
-  icici:        { name: 'ICICI Bank',        color: '#f97316', bg: '#fff7ed', icon: '🏦' },
+  icici:          { name: 'ICICI Bank',      color: '#f97316', bg: '#fff7ed', icon: '🏦' },
   'aditya-birla': { name: 'Aditya Birla',   color: '#8b5cf6', bg: '#f5f3ff', icon: '🏢' },
-  bajaj:        { name: 'Bajaj Finserv',     color: '#ef4444', bg: '#fef2f2', icon: '⚡' },
+  bajaj:          { name: 'Bajaj Finserv',   color: '#ef4444', bg: '#fef2f2', icon: '⚡' },
 };
 
 const STATUS_STYLES = {
@@ -33,18 +33,23 @@ export default function BankCases() {
   const role = localStorage.getItem('role');
 
   useEffect(() => {
-    const fetchCases = async () => {
-      setLoading(true);
-      try {
-        const token = localStorage.getItem('token');
-        const res = await API.get(`/cases?bank=${meta.name}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setCases(res.data.cases || []);
-      } catch (e) { console.error(e); }
+    if (DEMO_MODE) {
+      const filtered = MOCK_CASES.filter(c => c.bank === meta.name);
+      setCases(filtered);
       setLoading(false);
-    };
-    fetchCases();
+      return;
+    }
+    // --- REAL API (commented out for demo) ---
+    // const fetchCases = async () => {
+    //   setLoading(true);
+    //   try {
+    //     const token = localStorage.getItem('token');
+    //     const res = await API.get(`/cases?bank=${meta.name}`, { headers: { Authorization: `Bearer ${token}` } });
+    //     setCases(res.data.cases || []);
+    //   } catch (e) { console.error(e); }
+    //   setLoading(false);
+    // };
+    // fetchCases();
   }, [bank]);
 
   const filtered = filter === 'all' ? cases : cases.filter(c => c.status === filter);

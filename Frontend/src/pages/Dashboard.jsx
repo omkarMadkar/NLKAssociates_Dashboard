@@ -1,41 +1,46 @@
 import { useEffect, useState } from 'react';
-import axios from '../api/axios';
+import { useNavigate } from 'react-router-dom';
+import { DEMO_MODE, MOCK_DASHBOARD } from '../data/mockData';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 export default function Dashboard() {
   const [data, setData] = useState(null);
-  const role = localStorage.getItem('role') || 'staff';
+  const role = localStorage.getItem('role') || 'senior';
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get('/dashboard/stats', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (res.data.success) setData(res.data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchStats();
+    if (DEMO_MODE) {
+      // Use mock data instantly — no API call
+      setData(MOCK_DASHBOARD);
+      return;
+    }
+    // --- REAL API (commented out for demo) ---
+    // const fetchStats = async () => {
+    //   try {
+    //     const token = localStorage.getItem('token');
+    //     const res = await axios.get('/dashboard/stats', {
+    //       headers: { Authorization: `Bearer ${token}` }
+    //     });
+    //     if (res.data.success) setData(res.data);
+    //   } catch (err) { console.error(err); }
+    // };
+    // fetchStats();
   }, []);
 
   if (!data) return <div style={{ padding: 40 }}>Loading...</div>;
 
   const { stats, bankStats, statusStats, recentCases } = data;
-
   const COLORS = ['#1a2744', '#2563eb', '#c9a84c', '#16a34a', '#d97706', '#dc2626'];
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'created': return '#64748b'; // gray
-      case 'assigned': return '#3b82f6'; // blue
-      case 'in_progress': return '#f59e0b'; // amber
-      case 'draft_ready': return '#a855f7'; // purple
-      case 'under_review': return '#f97316'; // orange
-      case 'approved': return '#22c55e'; // green
-      case 'shared_to_bank': return '#14b8a6'; // teal
+      case 'created': return '#64748b';
+      case 'assigned': return '#3b82f6';
+      case 'in_progress': return '#f59e0b';
+      case 'draft_ready': return '#a855f7';
+      case 'under_review': return '#f97316';
+      case 'approved': return '#22c55e';
+      case 'shared_to_bank': return '#14b8a6';
       default: return '#64748b';
     }
   };
@@ -48,12 +53,12 @@ export default function Dashboard() {
         <h1 style={{ fontSize: 28, color: 'var(--navy)', margin: 0 }}>Overview</h1>
         <div style={{ display: 'flex', gap: 12 }}>
           {role === 'admin' && (
-            <button style={{ background: 'var(--navy)', color: 'white', padding: '8px 16px', borderRadius: 6, border: 'none', cursor: 'pointer', fontWeight: 600 }}>
+            <button onClick={() => navigate('/cases/new')} style={{ background: 'var(--navy)', color: 'white', padding: '8px 16px', borderRadius: 6, border: 'none', cursor: 'pointer', fontWeight: 600 }}>
               ➕ New Case
             </button>
           )}
           {role === 'senior' && (
-            <button style={{ background: 'var(--gold)', color: 'white', padding: '8px 16px', borderRadius: 6, border: 'none', cursor: 'pointer', fontWeight: 600 }}>
+            <button onClick={() => navigate('/approvals')} style={{ background: 'var(--gold)', color: 'white', padding: '8px 16px', borderRadius: 6, border: 'none', cursor: 'pointer', fontWeight: 600 }}>
               📋 View Approvals
             </button>
           )}
@@ -125,17 +130,12 @@ export default function Dashboard() {
                   <td style={{ padding: '12px 24px' }}>{c.bank}</td>
                   <td style={{ padding: '12px 24px' }}>
                     <span style={{ background: getStatusColor(c.status) + '20', color: getStatusColor(c.status), padding: '4px 8px', borderRadius: 4, fontSize: 12, fontWeight: 600, textTransform: 'capitalize' }}>
-                      {c.status.replace('_', ' ')}
+                      {c.status.replace(/_/g, ' ')}
                     </span>
                   </td>
                   <td style={{ padding: '12px 24px', color: 'var(--muted)' }}>{new Date(c.createdAt).toLocaleDateString()}</td>
                 </tr>
               ))}
-              {recentCases.length === 0 && (
-                <tr>
-                  <td colSpan="5" style={{ padding: 24, textAlign: 'center', color: 'var(--muted)' }}>No recent cases</td>
-                </tr>
-              )}
             </tbody>
           </table>
         </div>

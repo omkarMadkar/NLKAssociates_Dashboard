@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import API from '../../api/axios';
+import { DEMO_MODE, MOCK_CASES } from '../../data/mockData';
 
 const STATUS_STYLES = {
   created:        { bg: '#f1f5f9', color: '#475569', label: 'Created' },
@@ -22,20 +22,24 @@ export default function CaseList() {
   const [cases, setCases] = useState([]);
   const [loading, setLoading] = useState(true);
   const role = localStorage.getItem('role');
-  const token = localStorage.getItem('token');
 
   useEffect(() => {
-    const fetchCases = async () => {
-      try {
-        const res = await API.get(`/cases`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setCases(res.data.cases || []);
-      } catch (e) { console.error(e); }
+    if (DEMO_MODE) {
+      setCases(MOCK_CASES);
       setLoading(false);
-    };
-    fetchCases();
-  }, [token]);
+      return;
+    }
+    // --- REAL API (commented out for demo) ---
+    // const token = localStorage.getItem('token');
+    // const fetchCases = async () => {
+    //   try {
+    //     const res = await API.get(`/cases`, { headers: { Authorization: `Bearer ${token}` } });
+    //     setCases(res.data.cases || []);
+    //   } catch (e) { console.error(e); }
+    //   setLoading(false);
+    // };
+    // fetchCases();
+  }, []);
 
   return (
     <div className="animate-in">
@@ -55,7 +59,6 @@ export default function CaseList() {
           <div style={{ padding: 48, textAlign: 'center' }}>
             <div style={{ fontSize: 48, marginBottom: 12 }}>📂</div>
             <div style={{ fontFamily: 'Playfair Display', fontSize: 20, color: 'var(--navy)' }}>No cases found</div>
-            <div style={{ color: 'var(--muted)', marginTop: 8 }}>Create the first case.</div>
           </div>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>

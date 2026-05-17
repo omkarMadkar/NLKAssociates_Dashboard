@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { DEMO_MODE } from '../../data/mockData';
 
 export default function Sidebar({ collapsed, setCollapsed }) {
   const location = useLocation();
@@ -26,6 +27,10 @@ export default function Sidebar({ collapsed, setCollapsed }) {
 
 
   const logout = () => {
+    if (DEMO_MODE) {
+      alert('🔒 Login/logout disabled in Demo Mode.');
+      return;
+    }
     localStorage.removeItem('token');
     localStorage.removeItem('role');
     navigate('/');

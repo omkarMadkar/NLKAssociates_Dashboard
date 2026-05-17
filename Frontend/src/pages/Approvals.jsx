@@ -1,29 +1,35 @@
 import { useState, useEffect } from 'react';
-import API from '../api/axios';
+import { DEMO_MODE, MOCK_TSR_PENDING } from '../data/mockData';
 
 export default function Approvals() {
   const role = localStorage.getItem('role');
-  const token = localStorage.getItem('token');
   const [pending, setPending] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState(null);
   const [notes, setNotes] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  const [actionDone, setActionDone] = useState({});
 
   useEffect(() => {
-    fetchPending();
-  }, []);
-
-  const fetchPending = async () => {
-    if (role !== 'senior') return;
-    try {
-      const res = await API.get('/approvals/pending', { headers: { Authorization: `Bearer ${token}` } });
-      setPending(res.data.pending);
-    } catch (err) {
-      console.error(err);
+    if (DEMO_MODE) {
+      // Simulate a brief loading state
+      setTimeout(() => {
+        setPending(MOCK_TSR_PENDING);
+        setLoading(false);
+      }, 400);
+      return;
     }
-    setLoading(false);
-  };
+    // --- REAL API (commented out for demo) ---
+    // const token = localStorage.getItem('token');
+    // const fetchPending = async () => {
+    //   if (role !== 'senior') return;
+    //   try {
+    //     const res = await API.get('/approvals/pending', { headers: { Authorization: `Bearer ${token}` } });
+    //     setPending(res.data.pending);
+    //   } catch (err) { console.error(err); }
+    //   setLoading(false);
+    // };
+    // fetchPending();
+  }, []);
 
   if (role !== 'senior') {
     return (
@@ -35,30 +41,25 @@ export default function Approvals() {
     );
   }
 
-  const handleAction = async (id, action) => {
-    setSubmitting(true);
-    try {
-      await API.post(`/approvals/${id}/${action}`, { notes }, { headers: { Authorization: `Bearer ${token}` } });
-      setNotes('');
-      setExpandedId(null);
-      fetchPending();
-    } catch (err) {
-      console.error(err);
-      alert('Action failed');
-    }
-    setSubmitting(false);
+  const handleAction = (id, action) => {
+    // DEMO: just mark as done locally
+    setActionDone(prev => ({ ...prev, [id]: action }));
+    setExpandedId(null);
+    setNotes('');
   };
+
+  const activePending = pending.filter(item => !actionDone[item._id]);
 
   return (
     <div className="animate-in" style={{ maxWidth: 900, margin: '0 auto' }}>
       <div style={{ marginBottom: 28 }}>
         <h1 style={{ fontFamily: 'Playfair Display', fontSize: 28, color: 'var(--navy)', margin: 0 }}>Approval Queue</h1>
-        <p style={{ color: 'var(--muted)', marginTop: 6, fontSize: 14 }}>{pending.length} reports pending your review</p>
+        <p style={{ color: 'var(--muted)', marginTop: 6, fontSize: 14 }}>{activePending.length} reports pending your review</p>
       </div>
 
       {loading ? (
         <div style={{ padding: 40, color: 'var(--muted)', textAlign: 'center' }}>Loading...</div>
-      ) : pending.length === 0 ? (
+      ) : activePending.length === 0 ? (
         <div style={{ background: 'white', borderRadius: 12, padding: 48, textAlign: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
           <div style={{ fontSize: 48, marginBottom: 16 }}>🎉</div>
           <div style={{ fontFamily: 'Playfair Display', fontSize: 20, color: 'var(--navy)' }}>You're all caught up!</div>
@@ -66,7 +67,7 @@ export default function Approvals() {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {pending.map((item) => {
+          {activePending.map((item) => {
             const isExpanded = expandedId === item._id;
             return (
               <div key={item._id} style={{ background: 'white', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.08)', overflow: 'hidden' }}>
@@ -104,10 +105,10 @@ export default function Approvals() {
                     </div>
 
                     <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
-                      <button onClick={() => handleAction(item._id, 'reject')} disabled={submitting} style={{ background: 'white', color: 'var(--danger)', border: '1px solid var(--danger)', padding: '10px 24px', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+                      <button onClick={() => handleAction(item._id, 'reject')} style={{ background: 'white', color: '#dc2626', border: '1px solid #dc2626', padding: '10px 24px', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
                         🔄 Request Changes
                       </button>
-                      <button onClick={() => handleAction(item._id, 'approve')} disabled={submitting} style={{ background: 'var(--success)', color: 'white', border: 'none', padding: '10px 24px', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+                      <button onClick={() => handleAction(item._id, 'approve')} style={{ background: '#16a34a', color: 'white', border: 'none', padding: '10px 24px', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
                         ✅ Approve
                       </button>
                     </div>

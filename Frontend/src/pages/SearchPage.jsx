@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import API from '../api/axios';
+import { DEMO_MODE, MOCK_CASES } from '../data/mockData';
 
 const STATUS_STYLES = {
   created:        { bg: '#f1f5f9', color: '#475569', label: 'Created' },
@@ -21,54 +21,54 @@ export default function SearchPage() {
   const [query, setQuery] = useState('');
   const [bank, setBank] = useState('');
   const [status, setStatus] = useState('');
-  
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
 
-  const token = localStorage.getItem('token');
-
-  const handleSearch = async (e) => {
+  const handleSearch = (e) => {
     if (e) e.preventDefault();
     setLoading(true);
     setSearched(true);
-    try {
-      const qBank = bank ? `&bank=${bank}` : '';
-      const qStatus = status ? `&status=${status}` : '';
-      const res = await API.get(`/cases?search=${query}${qBank}${qStatus}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      // Simple client-side text filtering since backend API only handles bank and status currently
-      const filtered = (res.data.cases || []).filter(c => {
-        if (!query) return true;
-        const lowerQ = query.toLowerCase();
-        const cid = c.caseId.toLowerCase();
-        const cname = (c.clientId?.name || '').toLowerCase();
-        const prop = (c.propertyId?.address || '').toLowerCase();
-        return cid.includes(lowerQ) || cname.includes(lowerQ) || prop.includes(lowerQ);
-      });
-      
-      setResults(filtered);
-    } catch (err) {
-      console.error(err);
+
+    if (DEMO_MODE) {
+      // Filter from local mock data
+      setTimeout(() => {
+        const filtered = MOCK_CASES.filter(c => {
+          const lq = query.toLowerCase();
+          const matchesQuery = !query ||
+            c.caseId.toLowerCase().includes(lq) ||
+            (c.clientId?.name || '').toLowerCase().includes(lq) ||
+            (c.propertyId?.address || '').toLowerCase().includes(lq);
+          const matchesBank = !bank || c.bank === bank;
+          const matchesStatus = !status || c.status === status;
+          return matchesQuery && matchesBank && matchesStatus;
+        });
+        setResults(filtered);
+        setLoading(false);
+      }, 300);
+      return;
     }
-    setLoading(false);
+    // --- REAL API (commented out for demo) ---
+    // const token = localStorage.getItem('token');
+    // const doSearch = async () => {
+    //   const qBank = bank ? `&bank=${bank}` : '';
+    //   const qStatus = status ? `&status=${status}` : '';
+    //   const res = await API.get(`/cases?search=${query}${qBank}${qStatus}`, { headers: { Authorization: `Bearer ${token}` } });
+    //   setResults(res.data.cases || []);
+    //   setLoading(false);
+    // };
+    // doSearch().catch(console.error);
   };
 
   const handleClear = () => {
-    setQuery('');
-    setBank('');
-    setStatus('');
-    setResults([]);
-    setSearched(false);
+    setQuery(''); setBank(''); setStatus('');
+    setResults([]); setSearched(false);
   };
 
   const inputStyle = { border: '1px solid var(--border)', padding: '10px 14px', borderRadius: 8, fontSize: 14, outline: 'none' };
 
   return (
     <div className="animate-in">
-      
       {/* Search Header */}
       <div style={{ background: 'white', borderRadius: 12, padding: '24px 32px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', marginBottom: 24 }}>
         <h1 style={{ fontFamily: 'Playfair Display', fontSize: 24, color: 'var(--navy)', margin: '0 0 20px 0' }}>Search & Filter</h1>
@@ -133,7 +133,7 @@ export default function SearchPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {results.map((c, i) => (
+                  {results.map((c) => (
                     <tr key={c._id} style={{ borderTop: '1px solid var(--border)' }}>
                       <td style={{ padding: '14px 16px', fontFamily: 'monospace', fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>{c.caseId}</td>
                       <td style={{ padding: '14px 16px', fontSize: 13 }}>{c.clientId?.name || '—'}</td>
