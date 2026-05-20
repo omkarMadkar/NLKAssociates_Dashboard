@@ -21,11 +21,11 @@ export default function Sidebar({ collapsed, setCollapsed }) {
           children: [
             { label: 'TSR Initiation', path: '/non-litigation/business-legal/tsr-initiation', icon: '📋' },
             { label: 'TSR Drafting', path: '/non-litigation/business-legal/tsr-drafting', icon: '✍️' },
+            { label: 'ICICI Bank', path: '/non-litigation/icici', icon: '🏦' },
+            { label: 'Aditya Birla', path: '/non-litigation/aditya-birla', icon: '🏢' },
+            { label: 'Bajaj', path: '/non-litigation/bajaj', icon: '⚡' },
           ]
-        },
-        { label: 'ICICI Bank', path: '/non-litigation/icici' },
-        { label: 'Aditya Birla', path: '/non-litigation/aditya-birla' },
-        { label: 'Bajaj', path: '/non-litigation/bajaj' },
+        }
       ]
     },
     { label: 'Search', icon: '🔍', path: '/search' },
