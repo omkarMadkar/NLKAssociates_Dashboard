@@ -259,7 +259,7 @@ NLK Associates — Advocates & Legal Consultants`;
             </div>
             <textarea value={draftContent} onChange={e => setDraftContent(e.target.value)}
               placeholder="Select a Quick Template above, or click 'Generate AI Draft' to auto-fill..."
-              rows={16} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'monospace', lineHeight: 1.7, minHeight: 320 }} />
+              rows={10} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'monospace', lineHeight: 1.6, minHeight: 200 }} />
           </div>
 
           {/* Action Buttons */}
