@@ -244,7 +244,7 @@ NLK Associates — Advocates & Legal Consultants`;
             {[['standard', 'Standard'], ['residential', 'Residential'], ['commercial', 'Commercial']].map(([k, l]) => (
               <button key={k} onClick={() => handleQuickTemplate(k)}
                 style={{ padding: '6px 16px', borderRadius: 6, border: '1px solid var(--border)', background: 'white', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--navy)' }}
-                onMouseEnter={e => e.target.style.background = 'var(--navy)' && (e.target.style.color = 'white')}
+                onMouseEnter={e => { e.target.style.background = 'var(--navy)'; e.target.style.color = 'white'; }}
                 onMouseLeave={e => { e.target.style.background = 'white'; e.target.style.color = 'var(--navy)'; }}>
                 {l}
               </button>
